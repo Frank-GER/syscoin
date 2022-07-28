@@ -12,6 +12,17 @@ from typing import List
 
 import lief #type:ignore
 
+def check_ELF_PIE(binary) -> bool:
+    '''
+    Check for position independent executable (PIE),
+    allowing for address space randomization.
+    '''
+    if binary.header.machine_type == lief.ELF.ARCH.x86_64:
+        # LIEF doesn't yet understand -static-pie
+        return True
+    else:
+        return binary.is_pie
+
 def check_ELF_RELRO(binary) -> bool:
     '''
     Check for read-only relocations.
@@ -189,7 +200,7 @@ def check_MACHO_control_flow(binary) -> bool:
     return False
 
 BASE_ELF = [
-    ('PIE', check_PIE),
+    ('PIE', check_ELF_PIE),
     ('NX', check_NX),
     ('RELRO', check_ELF_RELRO),
     ('Canary', check_ELF_Canary),

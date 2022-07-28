@@ -52,7 +52,8 @@ BASEPREFIX="${PWD}/depends"
 store_path() {
     grep --extended-regexp "/[^-]{32}-${1}-[^-]+${2:+-${2}}" "${GUIX_ENVIRONMENT}/manifest" \
         | head --lines=1 \
-        | sed --expression='s|^[[:space:]]*"||' \
+        | sed --expression='s|\x29*$||' \
+              --expression='s|^[[:space:]]*"||' \
               --expression='s|"[[:space:]]*$||'
 }
 
@@ -151,10 +152,10 @@ esac
 
 # Determine the correct value for -Wl,--dynamic-linker for the current $HOST
 case "$HOST" in
+    x86_64-linux-gnu) ;;
     *linux*)
         glibc_dynamic_linker=$(
             case "$HOST" in
-                x86_64-linux-gnu)      echo /lib64/ld-linux-x86-64.so.2 ;;
                 arm-linux-gnueabihf)   echo /lib/ld-linux-armhf.so.3 ;;
                 aarch64-linux-gnu)     echo /lib/ld-linux-aarch64.so.1 ;;
                 riscv64-linux-gnu)     echo /lib/ld-linux-riscv64-lp64d.so.1 ;;
@@ -195,12 +196,14 @@ make -C depends --jobs="$JOBS" HOST="$HOST" \
                                    ${SDK_PATH+SDK_PATH="$SDK_PATH"} \
                                    x86_64_linux_CC=x86_64-linux-gnu-gcc \
                                    x86_64_linux_CXX=x86_64-linux-gnu-g++ \
-                                   x86_64_linux_AR=x86_64-linux-gnu-ar \
-                                   x86_64_linux_RANLIB=x86_64-linux-gnu-ranlib \
-                                   x86_64_linux_NM=x86_64-linux-gnu-nm \
+                                   x86_64_linux_AR=x86_64-linux-gnu-gcc-ar \
+                                   x86_64_linux_RANLIB=x86_64-linux-gnu-gcc-ranlib \
+                                   x86_64_linux_NM=x86_64-linux-gnu-gcc-nm \
                                    x86_64_linux_STRIP=x86_64-linux-gnu-strip \
                                    qt_config_opts_x86_64_linux='-platform linux-g++ -xplatform syscoin-linux-g++' \
-                                   FORCE_USE_SYSTEM_CLANG=1
+                                   FORCE_USE_SYSTEM_CLANG=1 \
+                                   LTO=1 \
+                                   NO_QT=1
 
 
 ###########################
@@ -245,6 +248,7 @@ esac
 
 # LDFLAGS
 case "$HOST" in
+    x86_64-linux-gnu)  HOST_LDFLAGS="-static-libgcc -static-pie -Wl,-O2" ;; # static-libgcc needed for configure
     *linux*)  HOST_LDFLAGS="-Wl,--as-needed -Wl,--dynamic-linker=$glibc_dynamic_linker -static-libstdc++ -Wl,-O2" ;;
     *mingw*)  HOST_LDFLAGS="-Wl,--no-insert-timestamp" ;;
 esac
@@ -292,7 +296,8 @@ mkdir -p "$DISTSRC"
     make -O --no-print-directory --jobs="$JOBS" ${V:+V=1}
 
     # Check that symbol/security checks tools are sane.
-    make test-security-check ${V:+V=1}
+    # Disable (just the check tests) for now
+    # make test-security-check ${V:+V=1}
     # Perform basic security checks on a series of executables.
     make -C src --jobs=1 check-security ${V:+V=1}
     # Check that executables only contain allowed version symbols.

@@ -210,6 +210,10 @@ def check_exported_symbols(binary) -> bool:
 
 def check_ELF_libraries(binary) -> bool:
     ok: bool = True
+
+    if binary.header.machine_type == lief.ELF.ARCH.x86_64:
+        return len(binary.libraries) == 0
+
     for library in binary.libraries:
         if library not in ELF_ALLOWED_LIBRARIES:
             print(f'{filename}: {library} is not in ALLOWED_LIBRARIES!')
@@ -251,9 +255,12 @@ def check_PE_subsystem_version(binary) -> bool:
     return False
 
 def check_ELF_interpreter(binary) -> bool:
-    expected_interpreter = ELF_INTERPRETER_NAMES[binary.header.machine_type][binary.abstract.header.endianness]
-
-    return binary.concrete.interpreter == expected_interpreter
+    if binary.header.machine_type == lief.ELF.ARCH.x86_64:
+        # -static-pie binary doesn't have an interpreter
+        return True
+    else:
+        expected_interpreter = ELF_INTERPRETER_NAMES[binary.header.machine_type][binary.abstract.header.endianness]
+        return binary.concrete.interpreter == expected_interpreter
 
 CHECKS = {
 lief.EXE_FORMATS.ELF: [

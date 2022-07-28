@@ -129,6 +129,11 @@ chain for " target " development."))
       (home-page (package-home-page xgcc))
       (license (package-license xgcc)))))
 
+(define (skip-gcc-12-features base-gcc)
+  (package-with-extra-patches base-gcc
+    (search-our-patches "gcc-12-no-pthread.patch"
+                        "gcc-12-disable-features.patch")))
+
 (define base-gcc gcc-10)
 (define base-linux-kernel-headers linux-libre-headers-5.15)
 
@@ -539,6 +544,20 @@ inspecting signatures in Mach-O binaries.")
 (define (make-glibc-with-bind-now glibc)
   (package-with-extra-configure-variable glibc "--enable-bind-now" "yes"))
 
+
+;; https://www.gnu.org/software/libc/manual/html_node/Configuring-and-compiling.html
+(define (make-static-glibc glibc)
+  (make-glibc-with-stack-protector
+    (make-glibc-with-bind-now
+      (package-with-extra-configure-variable
+        (package-with-extra-configure-variable
+          (package-with-extra-configure-variable
+            (package-with-extra-configure-variable glibc
+              "--enable-cet" "yes")
+              "--enable-nscd" "no")
+              "--enable-static-nss" "yes")
+              "--enable-static-pie" "yes")))) ;; default from 2.35, but pass explicitly
+
 (define-public glibc-2.24
   (package
     (inherit glibc-2.31)
@@ -577,6 +596,22 @@ inspecting signatures in Mach-O binaries.")
                                            "glibc-2.27-dont-redefine-nss-database.patch"
                                            "glibc-2.27-guix-prefix.patch"))))))
 
+(define-public glibc-2.35
+  (package
+    (inherit glibc) ;; 2.33 in our time-machine
+    (version "2.35")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://sourceware.org/git/glibc.git")
+                    (commit "cd4f43be3d60384009e9a928d82db815f77ef9b7")))
+              (file-name (git-file-name "glibc" "23158b08a0908f381459f273a984c6fd32836cb"))
+              (sha256
+               (base32
+                "0nd44i4d8c5rmg831qppv4pl6nb1ic0sqd3smv84msp49xrrksr4"))
+              (patches (search-our-patches "glibc-ldd-x86_64.patch"
+                                           "glibc-2.35-guix-prefix.patch"))))))
+
 (packages->manifest
  (append
   (list ;; The Basics
@@ -606,9 +641,9 @@ inspecting signatures in Mach-O binaries.")
         automake
         pkg-config
         bison
-        ;; Native GCC 10 toolchain
-        gcc-toolchain-10
-        (list gcc-toolchain-10 "static")
+        ;; Native GCC 12 toolchain
+        gcc-toolchain-12
+        (list gcc-toolchain-12 "static")
         ;; Scripting
         perl
         python-3
@@ -624,8 +659,13 @@ inspecting signatures in Mach-O binaries.")
                  (make-nsis-for-gcc-10 nsis-x86_64)
                  osslsigncode))
           ((string-contains target "-linux-")
-           (list (cond ((string-contains target "riscv64-")
+           (list (cond ((string-contains target "x86_64-")
                         (make-syscoin-cross-toolchain target
+                                                      #:base-gcc-for-libc gcc-12
+                                                      #:base-libc (make-static-glibc glibc-2.35)
+                                                      #:base-gcc (make-gcc-rpath-link (skip-gcc-12-features (hardened-gcc gcc-12)))))
+                        ((string-contains target "riscv64-")
+                         (make-syscoin-cross-toolchain target
                                                       #:base-libc (make-glibc-with-stack-protector
                                                         (make-glibc-with-bind-now (make-glibc-without-werror glibc-2.27/syscoin-patched)))))
                        (else

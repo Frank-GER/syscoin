@@ -6,6 +6,7 @@ $(package)_file_name=$(package)-$($(package)_download_file)
 $(package)_build_subdir=build
 $(package)_sha256_hash=65a6f5385861e6c5f52bc67518b9468f65b3f826dc9a30cf6e30860e6f1918ec
 $(package)_dependencies=gmp cmake
+$(package)_patches=add_include_needed_for_gcc_12.patch
 $(package)_darwin_triplet=x86_64-apple-darwin19
 
 $(package)_sodium_version=97b0f4eff964f4ddaf0d0dd2bc5735df7cbd0c85
@@ -43,6 +44,7 @@ define $(package)_extract_cmds
 endef
 
 define $(package)_preprocess_cmds
+  patch -p1 < $($(package)_patch_dir)/add_include_needed_for_gcc_12.patch && \
   sed -i.old "s|GIT_REPOSITORY https://github.com/AmineKhaldi/libsodium-cmake.git|URL \"../../sodium-$($(package)_sodium_version).tar.gz\"|" CMakeLists.txt && \
   sed -i.old "s|GIT_TAG f73a3fe1afdc4e37ac5fe0ddd401bf521f6bba65|GIT_TAG \"\"|" CMakeLists.txt && \
   sed -i.old "s|GIT_REPOSITORY https://github.com/Chia-Network/relic.git|URL \"../../relic-$($(package)_relic_version).tar.gz\"|" CMakeLists.txt && \
@@ -62,6 +64,9 @@ define $(package)_set_vars
   $(package)_config_opts_arm+= -DWSIZE=32
   $(package)_config_opts_armv7l+= -DWSIZE=32
   $(package)_config_opts_debug=-DDEBUG=ON -DCMAKE_BUILD_TYPE=Debug
+
+  $(package)_config_opts_x86_64_linux += -DCMAKE_POLICY_DEFAULT_CMP0069=NEW
+  $(package)_config_opts_x86_64_linux += -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
 
   ifneq ($(darwin_native_toolchain),)
     $(package)_config_opts_darwin+= -DCMAKE_AR="$($(package)_ar)"

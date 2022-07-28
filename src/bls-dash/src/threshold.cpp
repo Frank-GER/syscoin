@@ -5,6 +5,7 @@
 #include "threshold.hpp"
 
 #include "schemes.hpp"
+#include <memory>
 
 static std::unique_ptr<bls::CoreMPL> pThresholdScheme(new bls::LegacySchemeMPL);
 
@@ -12,9 +13,9 @@ static std::unique_ptr<bls::CoreMPL> pThresholdScheme(new bls::LegacySchemeMPL);
  * Inverts a prime field element using the Euclidean Extended Algorithm,
  * using bns and a custom prime modulus.
  *
- * @param[out] c			- the result.
- * @param[in] a				- the prime field element to invert.
- * @param[in] p				- the custom prime modulus.
+ * @param[out] c            - the result.
+ * @param[in] a             - the prime field element to invert.
+ * @param[in] p             - the custom prime modulus.
  */
 static void fp_inv_exgcd_bn(bn_t c, const bn_t u_in, const bn_t p) {
     bn_t u, v, g1, g2, q, r;
@@ -288,7 +289,7 @@ namespace bls {
     G2Element Threshold::SignatureRecover(const std::vector<G2Element>& sigs, const std::vector<Bytes>& ids) {
         return Poly::LagrangeInterpolate(sigs, ids);
     }
-    
+
     G2Element Threshold::Sign(const PrivateKey& privateKey, const Bytes& vecMessage) {
         return pThresholdScheme->Sign(privateKey, vecMessage);
     }

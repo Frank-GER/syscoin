@@ -394,8 +394,8 @@ if test "$enable_debug" = "yes"; then
 fi
 
 if test "$enable_lto" = "yes"; then
-  AX_CHECK_COMPILE_FLAG([-flto], [LTO_CXXFLAGS="$LTO_CXXFLAGS -flto"], [AC_MSG_ERROR([compile failed with -flto])], [$CXXFLAG_WERROR])
-  AX_CHECK_LINK_FLAG([-flto], [LTO_LDFLAGS="$LTO_LDFLAGS -flto"], [AC_MSG_ERROR([link failed with -flto])], [$CXXFLAG_WERROR])
+  AX_CHECK_COMPILE_FLAG([-flto=auto], [LTO_CXXFLAGS="$LTO_CXXFLAGS -flto=auto"], [AC_MSG_ERROR([compile failed with -flto=auto])], [$CXXFLAG_WERROR])
+  AX_CHECK_LINK_FLAG([-flto=auto], [LTO_LDFLAGS="$LTO_LDFLAGS -flto=auto"], [AC_MSG_ERROR([link failed with -flto=auto])], [$CXXFLAG_WERROR])
 fi
 
 if test "$use_sanitizers" != ""; then

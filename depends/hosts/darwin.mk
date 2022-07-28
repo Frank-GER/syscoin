@@ -20,6 +20,7 @@ clangxx_prog=$(clang_prog)++
 llvm_config_prog=$(build_prefix)/bin/llvm-config
 
 clang_resource_dir=$(build_prefix)/lib/clang/$(native_clang_version)
+llvm_lib_dir=$(shell $(llvm_config_prog) --libdir)
 else
 # FORCE_USE_SYSTEM_CLANG is non-empty, so we use the clang from the user's
 # system

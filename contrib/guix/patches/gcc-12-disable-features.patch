@@ -1,0 +1,108 @@
+--- a/configure
++++ b/configure
+@@ -3137,17 +3137,7 @@ case "${host}" in
+     ;;
+ esac
+ 
+-
+-# Check whether --enable-libquadmath was given.
+-if test "${enable_libquadmath+set}" = set; then :
+-  enableval=$enable_libquadmath; ENABLE_LIBQUADMATH=$enableval
+-else
+-  ENABLE_LIBQUADMATH=yes
+-fi
+-
+-if test "${ENABLE_LIBQUADMATH}" = "no" ; then
+-  noconfigdirs="$noconfigdirs target-libquadmath"
+-fi
++noconfigdirs="$noconfigdirs target-libquadmath"
+ 
+ 
+ # Check whether --enable-libquadmath-support was given.
+@@ -3162,17 +3152,7 @@ if test "${ENABLE_LIBQUADMATH_SUPPORT}" = "no" ; then
+   enable_libquadmath_support=no
+ fi
+ 
+-
+-# Check whether --enable-libada was given.
+-if test "${enable_libada+set}" = set; then :
+-  enableval=$enable_libada; ENABLE_LIBADA=$enableval
+-else
+-  ENABLE_LIBADA=yes
+-fi
+-
+-if test "${ENABLE_LIBADA}" != "yes" ; then
+-  noconfigdirs="$noconfigdirs gnattools"
+-fi
++noconfigdirs="$noconfigdirs gnattools"
+ 
+ # Check whether --enable-libssp was given.
+ if test "${enable_libssp+set}" = set; then :
+@@ -3307,24 +3287,8 @@ $as_echo "yes" >&6; }
+     fi
+ fi
+ 
+-# Disable libsanitizer on unsupported systems.
+-if test -d ${srcdir}/libsanitizer; then
+-    if test x$enable_libsanitizer = x; then
+-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libsanitizer support" >&5
+-$as_echo_n "checking for libsanitizer support... " >&6; }
+-	if (srcdir=${srcdir}/libsanitizer; \
+-		. ${srcdir}/configure.tgt; \
+-		test -n "$UNSUPPORTED")
+-	then
+-	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+-$as_echo "no" >&6; }
+-	    noconfigdirs="$noconfigdirs target-libsanitizer"
+-	else
+-	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+-$as_echo "yes" >&6; }
+-	fi
+-    fi
+-fi
++# Disable libsanitizer
++noconfigdirs="$noconfigdirs target-libsanitizer"
+ 
+ # Disable libvtv on unsupported systems.
+ if test -d ${srcdir}/libvtv; then
+diff --git a/libgcc/configure b/libgcc/configure
+index 1f9b2ac578b..2434a0817e9 100755
+--- a/libgcc/configure
++++ b/libgcc/configure
+@@ -2708,18 +2708,7 @@ target_subdir=${target_noncanonical}
+ 
+ 
+ # Check whether --enable-gcov was given.
+-if test "${enable_gcov+set}" = set; then :
+-  enableval=$enable_gcov;
+-else
+-  case $target in
+-       bpf-*-*)
+-         enable_gcov=no
+-       ;;
+-       *)
+-         enable_gcov=yes
+-       ;;
+-     esac
+-fi
++enable_gcov=no
+ 
+ 
+ 
+diff --git a/libstdc++-v3/configure b/libstdc++-v3/configure
+index 9b94fd71e42..b6027c2eccb 100755
+--- a/libstdc++-v3/configure
++++ b/libstdc++-v3/configure
+@@ -16449,11 +16449,7 @@ fi
+   # default to on for easier handling.
+   USE_NLS=no
+   # Check whether --enable-nls was given.
+-if test "${enable_nls+set}" = set; then :
+-  enableval=$enable_nls;
+-else
+-  enable_nls=yes
+-fi
++  enable_nls=no
+ 
+ 
+   # Either a known package, or "auto"

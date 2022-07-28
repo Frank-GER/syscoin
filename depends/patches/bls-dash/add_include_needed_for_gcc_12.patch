@@ -1,0 +1,19 @@
+Patch for gcc-12
+
+Because of the header dependency changes in gcc-12
+some Standard Library headers need to be included explicitly now.
+
+See https://gcc.gnu.org/gcc-12/porting_to.html
+
+diff --git a/src/threshold.cpp b/src/threshold.cpp
+index 36cef18..c851864 100644
+--- a/src/threshold.cpp
++++ b/src/threshold.cpp
+@@ -5,6 +5,7 @@
+ #include "threshold.hpp"
+ 
+ #include "schemes.hpp"
++#include <memory>
+ 
+ static std::unique_ptr<bls::CoreMPL> pThresholdScheme(new bls::LegacySchemeMPL);
+ 
